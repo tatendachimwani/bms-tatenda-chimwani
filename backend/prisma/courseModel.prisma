@@ -1,0 +1,10 @@
+model Course {
+  id            Int    @id @default(autoincrement())
+  title         String
+  description   String?
+  instructorId  Int
+
+  instructor    User   @relation("InstructorCourses", fields: [instructorId], references: [id])
+
+  createdAt DateTime @default(now())
+}
