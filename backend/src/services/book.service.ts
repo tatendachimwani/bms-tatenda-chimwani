@@ -19,12 +19,11 @@ export class BooksService {
   // ➕ CREATE BOOK
   create(data: Partial<Book>) {
     const book = this.repo.create(data);
-
     return this.repo.save(book);
   }
 
   // 📖 GET ONE BOOK
-  async findOne(id: string) {
+  async findOne(id: number) {
     const book = await this.repo.findOne({
       where: { id },
     });
@@ -37,19 +36,19 @@ export class BooksService {
   }
 
   // ✏️ UPDATE BOOK
-  async update(id: string, data: Partial<Book>) {
-    const books = await this.findOne(id);
+  async update(id: number, data: Partial<Book>) {
+    const book = await this.findOne(id);
 
-    Object.assign(books, data);
+    Object.assign(book, data);
 
-    return this.repo.save(books);
+    return this.repo.save(book);
   }
 
   // ❌ DELETE BOOK
-  async remove(id: string) {
-    const books = await this.findOne(id);
+  async remove(id: number) {
+    const book = await this.findOne(id);
 
-    await this.repo.remove(books);
+    await this.repo.remove(book);
 
     return {
       message: 'Book deleted',

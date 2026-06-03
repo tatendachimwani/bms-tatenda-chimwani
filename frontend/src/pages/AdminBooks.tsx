@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import {
   getBooks,
   createBook,
   updateBook,
   deleteBook,
 } from "../services/books";
+import { useEffect } from "react";
 
 type Book = {
-  id: string;
+  id: number;
   title: string;
   author: string;
   publishedYear: number;
@@ -16,7 +17,7 @@ type Book = {
 };
 
 export default function Books() {
-  const [book, setBooks] = useState<Book[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -25,22 +26,41 @@ export default function Books() {
   const [publishedYear, setPublishedYear] = useState("");
   const [isbn, setIsbn] = useState("");
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  console.log("AdminBooks mounted");
+
+useEffect(() => {
+  console.log("useEffect running");
+}, []);
 
   // 🔄 fetch book
   const fetchBooks = async () => {
+  try {
     setLoading(true);
     const data = await getBooks();
     setBooks(data);
+  } catch (err) {
+    console.error("FAILED TO FETCH BOOKS:", err);
+  } finally {
     setLoading(false);
+  }
+};                    
+
+useEffect(() => {
+  const loadBooks = async () => {
+    try {
+      setLoading(true);
+      const data = await getBooks();
+      console.log("BOOKS RESPONSE:", data);
+      setBooks(data);
+    } catch (err) {
+      console.error("FAILED TO FETCH BOOKS:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => {
-  const load = async () => {
-    await fetchBooks();
-  };
-
-  load();
+  loadBooks();
 }, []);
 
   // ➕ create or update
@@ -85,7 +105,7 @@ export default function Books() {
   };
 
   // ❌ delete
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     await deleteBook(id);
     fetchBooks();
   };
@@ -148,7 +168,7 @@ export default function Books() {
           <p>Loading...</p>
         ) : (
           <div className="space-y-3">
-            {book.map((b) => (
+            {books.map((b) => (
               <div
                 key={b.id}
                 className="border p-3 rounded flex justify-between items-center"

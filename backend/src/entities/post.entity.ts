@@ -5,25 +5,16 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 
-@Entity('book')
-export class Book {
+@Entity()
+export class Post {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   title: string;
 
-  @Column()
-  author: string;
-
-  @Column({ unique: true })
-  isbn: string;
-
-  @Column()
-  publishedYear: number;
-
   @Column('text')
-  description: string;
+  content: string;
 
   @CreateDateColumn()
   createdAt: Date;

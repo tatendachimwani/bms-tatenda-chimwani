@@ -2,13 +2,13 @@ import api from "./api";
 
 // GET all book
 export const getBooks = async () => {
-  const response = await api.get("/book");
+  const response = await api.get("/books");
   return response.data;
 };
 
 // GET single book
 export const getBook = async (id: number) => {
-  const response = await api.get(`/book/${id}`);
+  const response = await api.get(`/books/${id}`);
   return response.data;
 };
 
@@ -20,13 +20,13 @@ export const createBook = async (data: {
     description: string;
     publishedYear: number;
 }) => {
-  const response = await api.post("/book", data);
+  const response = await api.post("/books", data);
   return response.data;
 };
 
 // UPDATE book
 export const updateBook = async (
-  id: string,
+  id: number,
   data: {
     title: string;
     author: string;
@@ -35,12 +35,12 @@ export const updateBook = async (
     publishedYear: number;
   }
 ) => {
-  const response = await api.put(`/book/${id}`, data);
+  const response = await api.put(`/books/${id}`, data);
   return response.data;
 };
 
 // DELETE book
-export const deleteBook = async (id: string) => {
-  const response = await api.delete(`/book/${id}`);
+export const deleteBook = async (id: number) => {
+  const response = await api.delete(`/books/${id}`);
   return response.data;
 };

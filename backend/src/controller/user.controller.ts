@@ -68,7 +68,7 @@ export class UsersController {
 
   // 🔄 Update status
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+  updateStatus(@Param('id') id: number, @Body() dto: UpdateStatusDto) {
     return this.usersService.updateStatus(Number(id), dto);
   }
 
@@ -87,5 +87,29 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   approve(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.promoteToAdmin(id);
+  }
+
+  // ✏️ Edit user
+  @Patch(':id')
+  updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body: {
+      name?: string;
+      email?: string;
+      role?: string;
+      status?: string;
+    },
+  ) {
+    return this.usersService.update(id, body);
+  }
+
+  // 🔑 Reset password
+  @Patch(':id/reset-password')
+  resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { password: string },
+  ) {
+    return this.usersService.resetPassword(id, body.password);
   }
 }

@@ -62,8 +62,12 @@ export class AuthService {
     }
 
     // 🚫 BLOCK UNAPPROVED USERS
-    if (user.status !== 'active') {
-      throw new UnauthorizedException('Account awaiting admin approval');
+    if (user.status === 'pending') {
+      throw new UnauthorizedException('Pending admin approval');
+    }
+
+    if (user.status === 'rejected') {
+      throw new UnauthorizedException('Account has been rejected');
     }
 
     // 🔐 CHECK PASSWORD

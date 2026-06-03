@@ -44,7 +44,7 @@ export class AdminService {
   }
 
   async deleteUser(id: number) {
-    return this.userRepo.delete(id);
+    return this.userRepo.delete({ id });
   }
 
   // =========================
@@ -60,9 +60,9 @@ export class AdminService {
     return this.bookRepo.save(book);
   }
 
-  async updateBook(id: string, data: Partial<Book>) {
+  async updateBook(id: number, data: Partial<Book>) {
     const book = await this.bookRepo.findOneBy({
-      id: String(id),
+      id: Number(id),
     });
 
     if (!book) throw new NotFoundException('Book not found');
@@ -72,7 +72,7 @@ export class AdminService {
     return this.bookRepo.save(book);
   }
 
-  deleteBook(id: string) {
+  deleteBook(id: number) {
     return this.bookRepo.delete(id);
   }
 }

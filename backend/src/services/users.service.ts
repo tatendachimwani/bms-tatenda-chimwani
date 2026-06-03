@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateStatusDto } from 'src/dto/updateStatusDto';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -12,7 +17,7 @@ export class UsersService {
   ) {}
 
   // 👑 Create admin
-  async createAdmin() {
+  async createAdmin(): Promise<User> {
     return this.usersRepository.save({
       name: 'Admin User',
       email: 'admin@gmail.com',
@@ -23,19 +28,19 @@ export class UsersService {
   }
 
   // 👤 Register user
-  async create(userData: Partial<User>) {
+  async create(userData: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(userData);
     return this.usersRepository.save(user);
   }
 
   // 🔍 Login helper
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
     });
   }
 
-  // 🔍 Find user by ID (✅ FIXED)
+  // 🔍 Find user by ID
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
@@ -48,54 +53,89 @@ export class UsersService {
     return user;
   }
 
-  // 📋 ALL USERS
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  // 📋 Get all users (without password hash)
+  async findAll(): Promise<Partial<User>[]> {
+    return this.usersRepository.find({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        status: true,
+      },
+    });
   }
 
-  // 👥 PENDING USERS
+  // 👥 Pending users
   async getPendingUsers(): Promise<User[]> {
     try {
-      const users = await this.usersRepository.find({
+      return await this.usersRepository.find({
         where: {
           status: 'pending',
         },
       });
+    } catch (error: unknown) {
+      console.error('PENDING USERS ERROR:', error);
 
-      return users;
-    } catch (error) {
-      console.log('PENDING USERS ERROR:', error);
-      throw error;
+      throw new InternalServerErrorException('Failed to fetch pending users');
     }
   }
 
-  // 🗑️ Delete (✅ FIXED)
-  async remove(id: number) {
-    const user = await this.findOne(id);
-    return this.usersRepository.remove(user);
-  }
-
-  rejectUser(id: number) {
-    return this.usersRepository.update(id, { status: 'rejected' });
-  }
-
-  async findByStatus(status: string) {
+  // 🔍 Find users by status
+  async findByStatus(status: string): Promise<User[]> {
     return this.usersRepository.find({
       where: { status },
     });
   }
 
-  // 🔼 Promote (✅ FIXED)
-  async promoteToAdmin(id: number) {
+  // 🗑️ Delete user
+  async remove(id: number): Promise<User> {
+    const user = await this.findOne(id);
+    return this.usersRepository.remove(user);
+  }
+
+  // ❌ Reject user
+  async rejectUser(id: number): Promise<UpdateResult> {
     return this.usersRepository.update(id, {
-      role: 'admin',
+      status: 'rejected',
     });
   }
 
-  // ✏️ Update status (✅ FIXED)
-  async updateStatus(id: number, data: UpdateStatusDto) {
+  // 🔼 Promote user to admin
+  async promoteToAdmin(id: number): Promise<UpdateResult> {
+    return this.usersRepository.update(id, {
+      role: 'admin',
+      status: 'active',
+    });
+  }
+
+  // ✏️ Update user status
+  async updateStatus(id: number, data: UpdateStatusDto): Promise<UpdateResult> {
     return this.usersRepository.update(id, {
       status: data.status,
     });
+  }
+
+  // ✏️ Edit user details
+  async update(id: number, data: Partial<User>): Promise<User> {
+    const user = await this.findOne(id);
+    Object.assign(user, data);
+    return this.usersRepository.save(user);
+  }
+
+  // 🔑 Reset password
+  async resetPassword(
+    id: number,
+    password: string,
+  ): Promise<{ message: string }> {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await this.usersRepository.update(id, {
+      password_hash: hashedPassword,
+    });
+
+    return {
+      message: 'Password reset successfully',
+    };
   }
 }

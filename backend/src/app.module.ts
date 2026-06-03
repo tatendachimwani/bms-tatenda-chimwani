@@ -7,11 +7,11 @@ import { Book } from './entities/book.entity';
 import { BooksModule } from './modules/book.module';
 import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './modules/auth.module';
+import { Post } from './entities/post.entity';
+import { PostsModule } from './modules/posts.module';
 
 @Module({
   imports: [
-    BooksModule,
-    AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -19,10 +19,13 @@ import { AuthModule } from './modules/auth.module';
       username: 'postgres',
       password: 'admin123',
       database: 'bms_db',
-
-      entities: [User, Book],
+      entities: [User, Book, Post],
       synchronize: true,
     }),
+
+    BooksModule,
+    AuthModule,
+    PostsModule,
   ],
 
   controllers: [AppController],

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { AdminService } from 'src/services/admin.service';
@@ -26,21 +27,21 @@ export class AdminController {
   }
 
   @Patch('user/approve/:id')
-  async approveUser(@Param('id') id: number) {
+  async approveUser(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.approveUser(id);
   }
 
   @Patch('user/promote/:id')
-  async promoteUser(@Param('id') id: number) {
+  async promoteUser(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.promoteUser(id);
   }
 
   @Delete('user/:id')
-  async deleteUser(@Param('id') id: number) {
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteUser(id);
   }
 
-  @Get('books')
+  @Get('book')
   findAllBooks() {
     return this.adminService.getBooks();
   }
@@ -51,12 +52,16 @@ export class AdminController {
   }
 
   @Delete('book/:id')
-  async deleteBook(@Param('id') id: string) {
+  deleteBook(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteBook(id);
   }
 
   @Patch('book/:id')
-  async updateBook(@Param('id') id: string, @Body() body: Partial<Book>) {
+  async updateBook(
+    @Param('id', ParseIntPipe)
+    id: number,
+    @Body() body: Partial<Book>,
+  ) {
     return this.adminService.updateBook(id, body);
   }
 }

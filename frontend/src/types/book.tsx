@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 
 interface Book {
-  id: string;
+  id: number;
   title: string;
   author: string;
   isbn: string;
@@ -75,7 +75,7 @@ const Book = () => {
   };
 
   // ❌ DELETE BOOK
-  const deleteBook = async (id: string) => {
+  const deleteBook = async (id: number) => {
     try {
       await api.delete(`/book/${id}`);
       fetchBooks();

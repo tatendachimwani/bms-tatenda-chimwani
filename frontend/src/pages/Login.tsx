@@ -46,7 +46,9 @@ export default function Login() {
       } else {
         navigate("/dashboard", { replace: true });
       }
-    } catch (err: unknown) {
+    } 
+    
+    catch (err: unknown) {
   let errorMessage = "Login failed. Please try again.";
 
   if (
@@ -59,13 +61,10 @@ export default function Login() {
         data?: {
           message?: string;
         };
-        status?: number;
       };
     };
 
-    if (axiosError.response?.status === 401) {
-      errorMessage = "Invalid email or password";
-    } else if (axiosError.response?.data?.message) {
+    if (axiosError.response?.data?.message) {
       errorMessage = axiosError.response.data.message;
     }
   } else if (err instanceof Error) {
@@ -74,8 +73,8 @@ export default function Login() {
 
   setError(errorMessage);
 } finally {
-      setLoading(false);
-    }
+  setLoading(false);
+}
   };
 
   return (

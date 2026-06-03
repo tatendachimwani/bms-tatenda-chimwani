@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import {  useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 type User = {
-  id: string;
+  id: number;
   email: string;
   role: "admin" | "user";
   status: "pending" | "active" | "rejected";
@@ -11,12 +12,13 @@ type User = {
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
+  
   // ✅ LOAD ALL USERS
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await api.get<User[]>("/users"); // IMPORTANT: not /pending
+      const res = await api.get<User[]>("/users");
       setUsers(res.data);
     } catch (err) {
       console.error("Failed to load users:", err);
@@ -25,21 +27,8 @@ export default function AdminUsers() {
     }
   };
 
-  useEffect(() => {
-  const load = async () => {
-    try {
-      const res = await api.get("/users");
-      setUsers(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  load();
-}, []);
-
   // ✅ APPROVE USER
-  const approveUser = async (id: string) => {
+  const approveUser = async (id: number) => {
     try {
       await api.patch(`/users/${id}/status`, {
         status: "active",
@@ -52,7 +41,7 @@ export default function AdminUsers() {
   };
 
   // ❌ REJECT USER
-  const rejectUser = async (id: string) => {
+  const rejectUser = async (id: number) => {
     try {
       await api.patch(`/users/${id}/status`, {
         status: "rejected",
@@ -65,11 +54,9 @@ export default function AdminUsers() {
   };
 
   // ⭐ PROMOTE TO ADMIN
-  const promoteUser = async (id: string) => {
+  const promoteUser = async (id: number) => {
     try {
-      await api.patch(`/users/${id}/role`, {
-        role: "admin",
-      });
+      await api.patch(`/users/${id}/approve`);
 
       fetchUsers();
     } catch (err) {
@@ -141,6 +128,13 @@ export default function AdminUsers() {
                   Promote to Admin
                 </button>
               )}
+
+               <button
+                onClick={() => navigate(`/admin/users/${u.id}/edit`)}
+                className="bg-gray-500 text-white px-3 py-1 rounded"
+              >
+                Edit
+              </button>
             </div>
           </div>
         ))}

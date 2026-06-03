@@ -1,134 +1,171 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 type User = {
-  id: string;
+  id: number;
+  name: string;
   email: string;
-  status: string;
+  role: "admin" | "user";
+  status: "pending" | "active" | "rejected";
 };
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // 🔄 Load all users from backend API
-  const loadUsers = async () => {
+  const navigate = useNavigate();
+
+  // ✅ LOAD USERS
+  const fetchUsers = async () => {
+    setLoading(true);
     try {
-      // 📡 Fetch users from /users endpoint
-      const res = await api.get<User[]>("/users/");
-      
-      // 💾 Store users in state
+      const res = await api.get<User[]>("/users");
       setUsers(res.data);
-    } catch (error) {
-      // ❌ Handle API errors
-      console.error("Failed to load users:", error);
+    } catch (err) {
+      console.error("Failed to load users:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    // 🚀 Fetch users when component mounts
-    const fetchUsers = async () => {
-      try {
-        // 📡 Call backend API to get all users
-        const res = await api.get<User[]>("/users/");
-        
-        // 💾 Save users into state
-        setUsers(res.data);
-      } catch (error) {
-        // ❌ Log any errors
-        console.error(error);
-      }
-    };
+ useEffect(() => {
+  const loadUsers = async () => {
+    setLoading(true);
 
-    // ▶️ Run fetch on page load
-    fetchUsers();
-  }, []);
-
-  // ✅ Approve user and set status to active
-  const approveUser = async (id: string) => {
     try {
-      // 🟢 Debug log for approve action
-      console.log("Approving user:", id);
+      const res = await api.get("/users");
+      setUsers(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // 📡 Send PATCH request to update status
-      const res = await api.patch(`/users/${id}/status`, {
+  loadUsers();
+}, []);
+
+  // ✅ APPROVE USER
+  const approveUser = async (id: number) => {
+    try {
+      await api.patch(`/users/${id}/status`, {
         status: "active",
       });
 
-      // 📄 Log backend response
-      console.log("Approve response:", res.data);
-
-      // 🔄 Refresh user list after update
-      await loadUsers();
-    } catch (error) {
-      // ❌ Handle approve errors
-      console.error("Approve failed:", error);
+      fetchUsers();
+    } catch (err) {
+      console.error("Approve failed:", err);
     }
   };
 
-  // ❌ Reject user and update status
-  const rejectUser = async (id: string) => {
+  // ❌ REJECT USER
+  const rejectUser = async (id: number) => {
     try {
-      // 🟥 Debug log for reject action
-      console.log("Rejecting user:", id);
+      await api.patch(`/users/${id}/status`, {
+        status: "rejected",
+      });
 
-      // 📡 Send PATCH request to reject user
-      const res = await api.patch(`/users/${id}/reject`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Reject failed:", err);
+    }
+  };
 
-      // 📄 Log backend response
-      console.log("Reject response:", res.data);
-
-      // 🔄 Refresh user list after update
-      await loadUsers();
-    } catch (error) {
-      // ❌ Handle reject errors
-      console.error("Reject failed:", error);
+  // ⭐ PROMOTE USER
+  const promoteUser = async (id: number) => {
+    try {
+      await api.patch(`/users/${id}/approve`);
+      fetchUsers();
+    } catch (err) {
+      console.error("Promote failed:", err);
     }
   };
 
   return (
     <div className="p-6">
-      {/* 📌 Page Title */}
-      <h2 className="text-2xl font-bold mb-6">Pending Users</h2>
+      <h2 className="text-xl font-bold mb-4">User Management</h2>
 
-      {/* 📭 Show message if no users exist */}
-      {users.length === 0 ? (
-        <p>No pending users found.</p>
-      ) : (
-        // 📋 Render users list
-        users.map((u) => (
+      {loading && <p>Loading users...</p>}
+
+      {!loading && users.length === 0 && (
+        <p>No users found</p>
+      )}
+
+      <div className="grid gap-3">
+        {users.map((u) => (
           <div
             key={u.id}
-            className="flex items-center justify-between p-4 border rounded-lg mb-3"
+            className="bg-white p-4 rounded shadow flex justify-between items-center"
           >
-            {/* 👤 User Info */}
+            {/* USER INFO */}
             <div>
-              <p className="font-semibold">{u.email}</p>
-              <p className="text-sm text-gray-500">
-                Status: {u.status}
+              <p className="font-semibold">{u.name}</p>
+              <p>{u.email}</p>
+
+              {/* STATUS BADGE */}
+              <p className="text-sm mt-1">
+                Role: {u.role} | Status:{" "}
+                <span
+                  className={`px-2 py-1 rounded text-xs font-semibold ${
+                    u.status === "active"
+                      ? "bg-green-100 text-green-700"
+                      : u.status === "pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {u.status === "active"
+                    ? "Approved"
+                    : u.status === "pending"
+                    ? "Pending"
+                    : "Rejected"}
+                </span>
               </p>
             </div>
 
-            {/* 🎛️ Action Buttons */}
-            <div className="flex gap-2">
-              {/* 🟢 Approve Button */}
-              <button
-                onClick={() => approveUser(u.id)}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
-              >
-                Approve
-              </button>
+            {/* ACTIONS */}
+            <div className="flex gap-2 items-center">
+              {/* PENDING ACTIONS */}
+              {u.status === "pending" && (
+                <>
+                  <button
+                    onClick={() => approveUser(u.id)}
+                    className="bg-green-500 text-white px-3 py-1 rounded"
+                  >
+                    Approve
+                  </button>
 
-              {/* 🔴 Reject Button */}
+                  <button
+                    onClick={() => rejectUser(u.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    Reject
+                  </button>
+                </>
+              )}
+
+              {/* PROMOTE */}
+              {u.status === "active" && u.role === "user" && (
+                <button
+                  onClick={() => promoteUser(u.id)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded"
+                >
+                  Promote
+                </button>
+              )}
+
+              {/* EDIT (ALWAYS AVAILABLE) */}
               <button
-                onClick={() => rejectUser(u.id)}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+                onClick={() => navigate(`/admin/users/${u.id}/edit`)}
+                className="bg-gray-500 text-white px-3 py-1 rounded"
               >
-                Reject
+                Edit
               </button>
             </div>
           </div>
-        ))
-      )}
+        ))}
+      </div>
     </div>
   );
 }

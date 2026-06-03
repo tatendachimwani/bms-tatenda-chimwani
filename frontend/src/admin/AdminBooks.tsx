@@ -24,14 +24,14 @@ export default function AdminBooks() {
 
   // 📚 LOAD BOOKS
   const fetchBooks = async () => {
-    const res = await api.get<Book[]>("/book");
+    const res = await api.get<Book[]>("/books");
     setBooks(res.data);
   };
 
   useEffect(() => {
   const loadBooks = async () => {
     try {
-      const res = await api.get<Book[]>("/book");
+      const res = await api.get<Book[]>("/books");
       setBooks(res.data);
     } catch (error) {
       console.error(error);
@@ -53,9 +53,9 @@ export default function AdminBooks() {
 
     try {
       if (editingId) {
-        await api.put(`/book/${editingId}`, payload);
+        await api.put(`/books/${editingId}`, payload);
       } else {
-        await api.post("/book", payload);
+        await api.post("/books", payload);
       }
 
       // RESET FORM
@@ -87,7 +87,7 @@ export default function AdminBooks() {
 
   // ❌ DELETE
   const deleteBook = async (id: number) => {
-    await api.delete(`/book/${id}`);
+    await api.delete(`/books/${id}`);
     fetchBooks();
   };
 

@@ -8,7 +8,7 @@ import {
   Delete,
   Put,
   UseGuards,
-  ParseUUIDPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { BooksService } from '../services/book.service';
@@ -20,7 +20,7 @@ type CreateBookDto = Parameters<BooksService['create']>[0];
 
 @ApiTags('Books')
 @ApiBearerAuth()
-@Controller('book')
+@Controller('books')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BooksController {
   constructor(private readonly bookService: BooksService) {}
@@ -34,7 +34,7 @@ export class BooksController {
 
   // ✅ GET ONE
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.bookService.findOne(id);
   }
 
@@ -50,14 +50,14 @@ export class BooksController {
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateBookDto) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateBookDto) {
     return this.bookService.update(id, dto);
   }
 
   // ✅ DELETE
   @Delete(':id')
   @Roles('admin')
-  remove(@Param('id', ParseUUIDPipe) id: string) {
+  remove(@Param('id', ParseIntPipe) id: number) {
     return this.bookService.remove(id);
   }
 }

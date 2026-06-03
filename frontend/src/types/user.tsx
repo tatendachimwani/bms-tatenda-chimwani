@@ -6,16 +6,20 @@ export interface User {
   name: string;
   email: string;
   role: "admin" | "user";
-  status?: "pending" | "active";
+  status: "pending" | "active" | "rejected";
 }
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<User[]>([]); // ✅ THIS FIXES IT
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const res = await api.get<User[]>("/admin/users");
-      setUsers(res.data);
+      try {
+        const res = await api.get<User[]>("/users"); // 👈 IMPORTANT FIX
+        setUsers(res.data?? []);
+      } catch (error) {
+        console.error("Failed to load users", error);
+      }
     };
 
     fetchUsers();
