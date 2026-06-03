@@ -7,7 +7,7 @@ export const getBooks = async () => {
 };
 
 // GET single book
-export const getBook = async (id: string) => {
+export const getBook = async (id: number) => {
   const response = await api.get(`/book/${id}`);
   return response.data;
 };
